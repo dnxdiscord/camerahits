@@ -1,0 +1,802 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Camera Hits — Photography</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo+Expanded:wght@700;800;900&family=Space+Grotesk:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  :root{
+    --bg:#0a0a0d;
+    --bg-soft:#13131a;
+    --ink:#f3f1ea;
+    --ink-dim:#9a98a8;
+    --line:#26262f;
+
+    --c-magenta:#ff3d8e;
+    --c-orange:#ff8a3d;
+    --c-cyan:#3de0ff;
+    --c-violet:#9d5dff;
+    --c-amber:#ffd23d;
+
+    --grad-main: linear-gradient(115deg, var(--c-magenta) 0%, var(--c-orange) 35%, var(--c-amber) 55%, var(--c-cyan) 85%);
+
+    --font-display: 'Archivo Expanded', sans-serif;
+    --font-body: 'Space Grotesk', sans-serif;
+    --font-mono: 'JetBrains Mono', monospace;
+  }
+
+  *{ margin:0; padding:0; box-sizing:border-box; }
+
+  html{ scroll-behavior:smooth; }
+
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:var(--font-body);
+    overflow-x:hidden;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+  }
+
+  a{ color:inherit; text-decoration:none; }
+  img{ display:block; max-width:100%; }
+
+  ::selection{ background:var(--c-magenta); color:#0a0a0d; }
+
+  :focus-visible{
+    outline: 2px solid var(--c-cyan);
+    outline-offset: 3px;
+  }
+
+  /* ---------- grain overlay ---------- */
+  .grain{
+    position:fixed; inset:0; pointer-events:none; z-index:200;
+    opacity:0.05; mix-blend-mode:overlay;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100' height='100'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* ---------- nav ---------- */
+  header{
+    position:fixed; top:0; left:0; right:0; z-index:100;
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 5vw;
+    backdrop-filter:blur(10px);
+    background:rgba(10,10,13,0.55);
+    border-bottom:1px solid var(--line);
+  }
+  .logo{
+    font-family:var(--font-display);
+    font-weight:900;
+    font-size:18px;
+    letter-spacing:0.02em;
+    display:flex; align-items:center; gap:10px;
+  }
+  .logo .aperture{
+    width:22px; height:22px; border-radius:50%;
+    border:2px solid var(--ink);
+    position:relative;
+    display:inline-block;
+  }
+  .logo .aperture::before{
+    content:'';
+    position:absolute; inset:5px;
+    border-radius:50%;
+    background:var(--grad-main);
+  }
+  nav{ display:flex; gap:34px; font-size:13px; font-family:var(--font-mono); letter-spacing:0.04em; }
+  nav a{ color:var(--ink-dim); transition:color 0.2s; position:relative; }
+  nav a:hover{ color:var(--ink); }
+  .nav-cta{
+    font-family:var(--font-mono);
+    font-size:12px;
+    border:1px solid var(--ink);
+    padding:8px 16px;
+    border-radius:100px;
+    color:var(--ink) !important;
+    transition:all 0.25s;
+  }
+  .nav-cta:hover{ background:var(--ink); color:var(--bg) !important; }
+  @media (max-width:760px){
+    nav{ display:none; }
+  }
+
+  /* ---------- hero ---------- */
+  .hero{
+    min-height:100vh;
+    display:flex; flex-direction:column; justify-content:center;
+    padding:0 5vw;
+    position:relative;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:'';
+    position:absolute;
+    width:140vw; height:140vw;
+    border-radius:50%;
+    top:-50vw; left:50%;
+    transform:translateX(-50%);
+    background:
+      radial-gradient(circle at 30% 30%, rgba(255,61,142,0.16), transparent 45%),
+      radial-gradient(circle at 70% 60%, rgba(61,224,255,0.13), transparent 45%),
+      radial-gradient(circle at 50% 80%, rgba(255,138,61,0.14), transparent 45%);
+    filter:blur(10px);
+    pointer-events:none;
+    animation:drift 18s ease-in-out infinite alternate;
+  }
+  @keyframes drift{
+    0%{ transform:translateX(-50%) rotate(0deg); }
+    100%{ transform:translateX(-50%) rotate(8deg); }
+  }
+
+  .hero-eyebrow{
+    font-family:var(--font-mono);
+    font-size:13px;
+    color:var(--c-cyan);
+    letter-spacing:0.12em;
+    margin-bottom:22px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .hero-eyebrow .dot{
+    width:7px; height:7px; border-radius:50%;
+    background:var(--c-magenta);
+    box-shadow:0 0 10px var(--c-magenta);
+    animation:pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse{ 0%,100%{ opacity:1; } 50%{ opacity:0.35; } }
+
+  h1.hero-title{
+    font-family:var(--font-display);
+    font-weight:900;
+    font-size:clamp(54px, 11vw, 152px);
+    line-height:0.92;
+    letter-spacing:-0.01em;
+    text-transform:uppercase;
+  }
+  h1.hero-title .line2{
+    background:var(--grad-main);
+    -webkit-background-clip:text;
+    background-clip:text;
+    color:transparent;
+    background-size:200% 200%;
+    animation:shift 8s ease infinite;
+  }
+  @keyframes shift{
+    0%,100%{ background-position:0% 50%; }
+    50%{ background-position:100% 50%; }
+  }
+
+  .hero-sub{
+    max-width:520px;
+    margin-top:28px;
+    font-size:17px;
+    line-height:1.6;
+    color:var(--ink-dim);
+  }
+  .hero-meta{
+    display:flex; gap:36px;
+    margin-top:48px;
+    font-family:var(--font-mono);
+    font-size:13px;
+  }
+  .hero-meta div{ display:flex; flex-direction:column; gap:4px; }
+  .hero-meta .num{ font-family:var(--font-display); font-size:26px; font-weight:800; color:var(--ink); }
+  .hero-meta .label{ color:var(--ink-dim); letter-spacing:0.05em; }
+
+  .scroll-cue{
+    position:absolute; bottom:36px; left:5vw;
+    font-family:var(--font-mono); font-size:11px;
+    color:var(--ink-dim);
+    display:flex; align-items:center; gap:10px;
+    letter-spacing:0.08em;
+  }
+  .scroll-cue .bar{
+    width:1px; height:34px; background:var(--ink-dim);
+    position:relative; overflow:hidden;
+  }
+  .scroll-cue .bar::after{
+    content:''; position:absolute; left:0; top:-100%; width:100%; height:100%;
+    background:var(--grad-main);
+    animation:scrolldown 1.8s ease-in-out infinite;
+  }
+  @keyframes scrolldown{ 0%{ top:-100%; } 100%{ top:100%; } }
+
+  /* ---------- section label (film-roll tabs) ---------- */
+  .section-head{
+    display:flex; align-items:baseline; justify-content:space-between;
+    padding:0 5vw;
+    margin:140px 0 36px;
+    flex-wrap:wrap; gap:14px;
+  }
+  .section-tag{
+    font-family:var(--font-mono);
+    font-size:12px;
+    color:var(--ink-dim);
+    letter-spacing:0.1em;
+    border-left:2px solid var(--c-orange);
+    padding-left:10px;
+  }
+  .section-title{
+    font-family:var(--font-display);
+    font-weight:900;
+    font-size:clamp(30px, 5vw, 54px);
+    text-transform:uppercase;
+    letter-spacing:-0.01em;
+  }
+
+  /* ---------- filter tabs ---------- */
+  .filters{
+    display:flex; gap:10px; flex-wrap:wrap;
+    padding:0 5vw; margin-bottom:40px;
+  }
+  .filter-btn{
+    font-family:var(--font-mono);
+    font-size:12px;
+    letter-spacing:0.04em;
+    padding:9px 18px;
+    border-radius:100px;
+    border:1px solid var(--line);
+    background:transparent;
+    color:var(--ink-dim);
+    cursor:pointer;
+    transition:all 0.25s;
+  }
+  .filter-btn:hover{ border-color:var(--ink-dim); color:var(--ink); }
+  .filter-btn.active{
+    background:var(--ink);
+    color:var(--bg);
+    border-color:var(--ink);
+  }
+
+  /* ---------- gallery grid ---------- */
+  .gallery{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:6px;
+    padding:0 5vw 0;
+  }
+  @media (max-width:900px){ .gallery{ grid-template-columns:repeat(2, 1fr); } }
+
+  .frame{
+    position:relative;
+    overflow:hidden;
+    cursor:pointer;
+    background:var(--bg-soft);
+    aspect-ratio:1/1;
+  }
+  .frame.tall{ aspect-ratio:1/1.35; }
+  .frame.wide{ grid-column:span 2; aspect-ratio:2/1; }
+  @media (max-width:900px){ .frame.wide{ grid-column:span 2; } }
+
+  .frame img{
+    width:100%; height:100%; object-fit:cover;
+    transition:transform 0.6s cubic-bezier(.16,1,.3,1), filter 0.4s;
+    filter:saturate(1.05);
+  }
+  .frame:hover img{ transform:scale(1.07); }
+
+  .frame-overlay{
+    position:absolute; inset:0;
+    background:linear-gradient(180deg, rgba(10,10,13,0) 40%, rgba(10,10,13,0.92) 100%);
+    opacity:0; transition:opacity 0.35s;
+    display:flex; flex-direction:column; justify-content:flex-end;
+    padding:16px;
+  }
+  .frame:hover .frame-overlay{ opacity:1; }
+
+  .frame-cat{
+    font-family:var(--font-mono);
+    font-size:10px;
+    letter-spacing:0.1em;
+    color:var(--c-cyan);
+    margin-bottom:6px;
+    text-transform:uppercase;
+  }
+  .frame-title{
+    font-family:var(--font-display);
+    font-weight:800;
+    font-size:16px;
+    margin-bottom:10px;
+  }
+  .exif{
+    display:flex; gap:12px;
+    font-family:var(--font-mono);
+    font-size:10px;
+    color:var(--ink-dim);
+    flex-wrap:wrap;
+  }
+  .exif span{ display:flex; flex-direction:column; gap:2px; }
+  .exif span b{ color:var(--ink); font-size:11px; font-weight:500; }
+
+  .frame-corner{
+    position:absolute; top:14px; right:14px;
+    width:18px; height:18px;
+    opacity:0; transition:opacity 0.3s;
+  }
+  .frame:hover .frame-corner{ opacity:1; }
+  .frame-corner svg{ width:100%; height:100%; }
+
+  /* ---------- about / signature strip ---------- */
+  .strip{
+    margin-top:160px;
+    padding:90px 5vw;
+    background:var(--bg-soft);
+    border-top:1px solid var(--line);
+    border-bottom:1px solid var(--line);
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:60px;
+    align-items:center;
+  }
+  @media (max-width:860px){ .strip{ grid-template-columns:1fr; } }
+
+  .strip-title{
+    font-family:var(--font-display);
+    font-weight:900;
+    font-size:clamp(28px, 4vw, 44px);
+    text-transform:uppercase;
+    line-height:1.05;
+    margin-bottom:22px;
+  }
+  .strip p{
+    color:var(--ink-dim);
+    line-height:1.7;
+    font-size:15.5px;
+    max-width:480px;
+  }
+
+  .dial{
+    width:100%;
+    aspect-ratio:1/1;
+    max-width:340px;
+    margin:0 auto;
+    border-radius:50%;
+    position:relative;
+    border:1px solid var(--line);
+    display:flex; align-items:center; justify-content:center;
+  }
+  .dial::before{
+    content:'';
+    position:absolute; inset:14%;
+    border-radius:50%;
+    background:conic-gradient(from 0deg, var(--c-magenta), var(--c-orange), var(--c-amber), var(--c-cyan), var(--c-violet), var(--c-magenta));
+    opacity:0.85;
+    animation:spin 14s linear infinite;
+  }
+  .dial::after{
+    content:'';
+    position:absolute; inset:30%;
+    border-radius:50%;
+    background:var(--bg-soft);
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+  .dial-label{
+    position:relative; z-index:2;
+    font-family:var(--font-mono);
+    font-size:11px;
+    text-align:center;
+    color:var(--ink);
+    letter-spacing:0.06em;
+  }
+  .dial-label b{ display:block; font-family:var(--font-display); font-size:22px; font-weight:800; margin-bottom:2px;}
+
+  /* ---------- contact / footer ---------- */
+  .contact{
+    padding:160px 5vw 100px;
+    text-align:center;
+  }
+  .contact-title{
+    font-family:var(--font-display);
+    font-weight:900;
+    font-size:clamp(40px, 9vw, 110px);
+    text-transform:uppercase;
+    line-height:0.95;
+    letter-spacing:-0.01em;
+  }
+  .contact-title span{
+    background:var(--grad-main);
+    -webkit-background-clip:text; background-clip:text; color:transparent;
+  }
+  .contact-links{
+    display:flex; justify-content:center; gap:18px;
+    margin-top:46px; flex-wrap:wrap;
+  }
+  .pill{
+    font-family:var(--font-mono);
+    font-size:13px;
+    letter-spacing:0.03em;
+    padding:14px 28px;
+    border-radius:100px;
+    border:1px solid var(--line);
+    display:inline-flex; align-items:center; gap:10px;
+    transition:all 0.25s;
+  }
+  .pill.primary{ background:var(--ink); color:var(--bg); border-color:var(--ink); }
+  .pill.primary:hover{ background:var(--c-magenta); border-color:var(--c-magenta); color:#0a0a0d; }
+  .pill:not(.primary):hover{ border-color:var(--ink); }
+
+  footer{
+    padding:30px 5vw 40px;
+    display:flex; justify-content:space-between; align-items:center;
+    border-top:1px solid var(--line);
+    font-family:var(--font-mono);
+    font-size:11px;
+    color:var(--ink-dim);
+    flex-wrap:wrap;
+    gap:10px;
+  }
+
+  /* ---------- lightbox ---------- */
+  .lightbox{
+    position:fixed; inset:0; z-index:300;
+    background:rgba(8,8,10,0.92);
+    backdrop-filter:blur(6px);
+    display:none;
+    align-items:center; justify-content:center;
+    padding:5vw;
+  }
+  .lightbox.open{ display:flex; }
+  .lightbox-inner{
+    max-width:1000px; width:100%;
+    display:grid; grid-template-columns:1.4fr 1fr; gap:0;
+    background:var(--bg-soft);
+    border:1px solid var(--line);
+    border-radius:6px;
+    overflow:hidden;
+  }
+  @media (max-width:760px){ .lightbox-inner{ grid-template-columns:1fr; } }
+  .lightbox-img{ width:100%; height:100%; object-fit:cover; max-height:80vh; }
+  .lightbox-info{ padding:34px; display:flex; flex-direction:column; gap:18px; }
+  .lightbox-cat{ font-family:var(--font-mono); font-size:11px; color:var(--c-cyan); letter-spacing:0.1em; text-transform:uppercase; }
+  .lightbox-title{ font-family:var(--font-display); font-weight:900; font-size:26px; }
+  .lightbox-exif{ display:grid; grid-template-columns:1fr 1fr; gap:14px; font-family:var(--font-mono); font-size:12px; }
+  .lightbox-exif span{ display:flex; flex-direction:column; gap:4px; color:var(--ink-dim); }
+  .lightbox-exif span b{ color:var(--ink); font-size:14px; font-weight:500; }
+  .lightbox-close{
+    position:absolute; top:24px; right:24px;
+    width:42px; height:42px; border-radius:50%;
+    border:1px solid var(--line);
+    background:rgba(10,10,13,0.6);
+    color:var(--ink);
+    font-size:18px;
+    cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .lightbox-close:hover{ border-color:var(--ink); }
+</style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<header>
+  <div class="logo"><span class="aperture"></span>CAMERA HITS</div>
+  <nav>
+    <a href="#work">Work</a>
+    <a href="#about">About</a>
+    <a href="#contact">Contact</a>
+  </nav>
+  <a class="nav-cta" href="https://instagram.com/camera_hits" target="_blank" rel="noopener">Instagram ↗</a>
+</header>
+
+<section class="hero">
+  <div class="hero-eyebrow"><span class="dot"></span>SHOOTING ON LIGHT, NOT JUST IN IT</div>
+  <h1 class="hero-title">FRAMES<br><span class="line2">THAT HIT</span></h1>
+  <p class="hero-sub">A working archive of landscapes, wild things, night skies and the
+    moments in between — shot, kept, and shown exactly as found through the viewfinder.</p>
+  <div class="hero-meta">
+    <div><span class="num">35</span><span class="label">FRAMES SHOT</span></div>
+    <div><span class="num">760+</span><span class="label">FOLLOWING ALONG</span></div>
+    <div><span class="num">6</span><span class="label">RECURRING SUBJECTS</span></div>
+  </div>
+  <div class="scroll-cue"><div class="bar"></div>SCROLL</div>
+</section>
+
+<div class="section-head" id="work">
+  <div>
+    <div class="section-tag">SELECTED FRAMES</div>
+    <div class="section-title">The Work</div>
+  </div>
+  <div class="section-tag" style="border-color:var(--c-cyan)">HOVER ANY FRAME FOR EXIF DATA</div>
+</div>
+
+<div class="filters">
+  <button class="filter-btn active" data-filter="all">All</button>
+  <button class="filter-btn" data-filter="landscape">Landscape</button>
+  <button class="filter-btn" data-filter="wildlife">Wildlife</button>
+  <button class="filter-btn" data-filter="night">Night & Sky</button>
+  <button class="filter-btn" data-filter="light">Light & Color</button>
+</div>
+
+<div class="gallery" id="gallery">
+  <!-- ⚠️ REPLACE EACH <img src="..."> BELOW WITH YOUR OWN PHOTO FILES.
+       Keep the data-cat, data-title and data-exif-* attributes if you want
+       the filter buttons and hover/lightbox EXIF info to keep working. -->
+
+  <div class="frame wide" data-cat="landscape" data-title="Palm Silhouette" data-exif-f="f/8" data-exif-iso="ISO 100" data-exif-ss="1/250s" data-exif-loc="Coastal Ridge">
+    <img src="https://images.unsplash.com/photo-1495616811223-4d98c6e9c869?w=1200&q=80" alt="Sunset through palm trees, violet sky" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Landscape</div>
+      <div class="frame-title">Palm Silhouette</div>
+      <div class="exif">
+        <span>APERTURE<b>f/8</b></span>
+        <span>ISO<b>100</b></span>
+        <span>SHUTTER<b>1/250s</b></span>
+        <span>LOCATION<b>Coastal Ridge</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame" data-cat="wildlife" data-title="Field Watch" data-exif-f="f/4" data-exif-iso="ISO 400" data-exif-ss="1/500s" data-exif-loc="Open Field">
+    <img src="https://images.unsplash.com/photo-1517849845537-4d257902861a?w=800&q=80" alt="Dog in tall grass" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Wildlife</div>
+      <div class="frame-title">Field Watch</div>
+      <div class="exif">
+        <span>APERTURE<b>f/4</b></span>
+        <span>ISO<b>400</b></span>
+        <span>SHUTTER<b>1/500s</b></span>
+        <span>LOCATION<b>Open Field</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame tall" data-cat="landscape" data-title="Golden Valley" data-exif-f="f/11" data-exif-iso="ISO 100" data-exif-ss="1/125s" data-exif-loc="Hillside Trail">
+    <img src="https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80" alt="Golden hour over hills" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Landscape</div>
+      <div class="frame-title">Golden Valley</div>
+      <div class="exif">
+        <span>APERTURE<b>f/11</b></span>
+        <span>ISO<b>100</b></span>
+        <span>SHUTTER<b>1/125s</b></span>
+        <span>LOCATION<b>Hillside Trail</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame" data-cat="night" data-title="Full Moon, Close" data-exif-f="f/9" data-exif-iso="ISO 200" data-exif-ss="1/400s" data-exif-loc="600mm">
+    <img src="https://images.unsplash.com/photo-1532693322450-2cb5c511067d?w=800&q=80" alt="Detailed close-up of the moon" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Night &amp; Sky</div>
+      <div class="frame-title">Full Moon, Close</div>
+      <div class="exif">
+        <span>APERTURE<b>f/9</b></span>
+        <span>ISO<b>200</b></span>
+        <span>SHUTTER<b>1/400s</b></span>
+        <span>LENS<b>600mm</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame" data-cat="night" data-title="Storm Light" data-exif-f="f/5.6" data-exif-iso="ISO 800" data-exif-ss="1/60s" data-exif-loc="Open Water">
+    <img src="https://images.unsplash.com/photo-1505672678657-cc7037095e60?w=800&q=80" alt="Lightning over dark water" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Night &amp; Sky</div>
+      <div class="frame-title">Storm Light</div>
+      <div class="exif">
+        <span>APERTURE<b>f/5.6</b></span>
+        <span>ISO<b>800</b></span>
+        <span>SHUTTER<b>1/60s</b></span>
+        <span>LOCATION<b>Open Water</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame tall" data-cat="light" data-title="Prism Flare" data-exif-f="f/2.8" data-exif-iso="ISO 100" data-exif-ss="1/1000s" data-exif-loc="Studio Light">
+    <img src="https://images.unsplash.com/photo-1462331940025-496dfbfc7564?w=800&q=80" alt="Rainbow prism light flare" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Light &amp; Color</div>
+      <div class="frame-title">Prism Flare</div>
+      <div class="exif">
+        <span>APERTURE<b>f/2.8</b></span>
+        <span>ISO<b>100</b></span>
+        <span>SHUTTER<b>1/1000s</b></span>
+        <span>LOCATION<b>Studio Light</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame" data-cat="wildlife" data-title="Deer at Dusk" data-exif-f="f/4.5" data-exif-iso="ISO 640" data-exif-ss="1/320s" data-exif-loc="Meadow Edge">
+    <img src="https://images.unsplash.com/photo-1484406566174-9da000fda645?w=800&q=80" alt="Deer in a green field" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Wildlife</div>
+      <div class="frame-title">Deer at Dusk</div>
+      <div class="exif">
+        <span>APERTURE<b>f/4.5</b></span>
+        <span>ISO<b>640</b></span>
+        <span>SHUTTER<b>1/320s</b></span>
+        <span>LOCATION<b>Meadow Edge</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame" data-cat="landscape" data-title="Tree Line, Dusk" data-exif-f="f/10" data-exif-iso="ISO 100" data-exif-ss="1/200s" data-exif-loc="Forest Edge">
+    <img src="https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&q=80" alt="Forest silhouette at dusk" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Landscape</div>
+      <div class="frame-title">Tree Line, Dusk</div>
+      <div class="exif">
+        <span>APERTURE<b>f/10</b></span>
+        <span>ISO<b>100</b></span>
+        <span>SHUTTER<b>1/200s</b></span>
+        <span>LOCATION<b>Forest Edge</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame wide" data-cat="night" data-title="Milky Reach" data-exif-f="f/2.8" data-exif-iso="ISO 3200" data-exif-ss="20s" data-exif-loc="Dark Sky Zone">
+    <img src="https://images.unsplash.com/photo-1419242902214-272b3f66ee7a?w=1200&q=80" alt="Night sky with stars over silhouettes" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Night &amp; Sky</div>
+      <div class="frame-title">Milky Reach</div>
+      <div class="exif">
+        <span>APERTURE<b>f/2.8</b></span>
+        <span>ISO<b>3200</b></span>
+        <span>SHUTTER<b>20s</b></span>
+        <span>LOCATION<b>Dark Sky Zone</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame" data-cat="light" data-title="Bokeh Drift" data-exif-f="f/1.8" data-exif-iso="ISO 200" data-exif-ss="1/640s" data-exif-loc="City Edge">
+    <img src="https://images.unsplash.com/photo-1419833173245-f59e1b93f9ee?w=800&q=80" alt="Colorful bokeh light abstract" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Light &amp; Color</div>
+      <div class="frame-title">Bokeh Drift</div>
+      <div class="exif">
+        <span>APERTURE<b>f/1.8</b></span>
+        <span>ISO<b>200</b></span>
+        <span>SHUTTER<b>1/640s</b></span>
+        <span>LOCATION<b>City Edge</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame tall" data-cat="landscape" data-title="Ridge & Cloud" data-exif-f="f/13" data-exif-iso="ISO 100" data-exif-ss="1/160s" data-exif-loc="High Ridge">
+    <img src="https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&q=80" alt="Cloudy sky over a mountain ridge" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Landscape</div>
+      <div class="frame-title">Ridge &amp; Cloud</div>
+      <div class="exif">
+        <span>APERTURE<b>f/13</b></span>
+        <span>ISO<b>100</b></span>
+        <span>SHUTTER<b>1/160s</b></span>
+        <span>LOCATION<b>High Ridge</b></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="frame" data-cat="wildlife" data-title="Perched" data-exif-f="f/5" data-exif-iso="ISO 320" data-exif-ss="1/500s" data-exif-loc="Riverbank">
+    <img src="https://images.unsplash.com/photo-1444464666168-49d633b86797?w=800&q=80" alt="Eagle perched and watching" loading="lazy">
+    <div class="frame-corner"><svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.5"><path d="M3 9V3h6M21 9V3h-6M3 15v6h6M21 15v6h-6"/></svg></div>
+    <div class="frame-overlay">
+      <div class="frame-cat">Wildlife</div>
+      <div class="frame-title">Perched</div>
+      <div class="exif">
+        <span>APERTURE<b>f/5</b></span>
+        <span>ISO<b>320</b></span>
+        <span>SHUTTER<b>1/500s</b></span>
+        <span>LOCATION<b>Riverbank</b></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="strip" id="about">
+  <div>
+    <div class="strip-title">Shot on instinct, kept on principle</div>
+    <p>Camera Hits started as a place to put the frames worth keeping — the ones where
+      the light did something it wasn't supposed to, or the subject held still just long
+      enough. No single genre, no single lens. Just the rule that every frame in the
+      grid has to earn its spot.</p>
+    <p style="margin-top:16px;">Every shot here keeps its real settings — aperture, ISO,
+      shutter — because the craft is the point, not just the result.</p>
+  </div>
+  <div class="dial">
+    <div class="dial-label"><b>35</b>FRAMES<br>KEPT</div>
+  </div>
+</div>
+
+<section class="contact" id="contact">
+  <div class="section-tag" style="display:inline-block; margin-bottom:24px;">GET IN TOUCH</div>
+  <h2 class="contact-title">LET'S MAKE<br><span>SOMETHING&nbsp;HIT</span></h2>
+  <div class="contact-links">
+    <a class="pill primary" href="https://instagram.com/camera_hits" target="_blank" rel="noopener">Follow on Instagram ↗</a>
+    <a class="pill" href="mailto:hello@camerahits.com">hello@camerahits.com</a>
+  </div>
+</section>
+
+<footer>
+  <span>© 2026 CAMERA HITS</span>
+  <span>BUILT FRAME BY FRAME</span>
+</footer>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightboxClose" aria-label="Close">✕</button>
+  <div class="lightbox-inner">
+    <img class="lightbox-img" id="lightboxImg" src="" alt="">
+    <div class="lightbox-info">
+      <div class="lightbox-cat" id="lightboxCat"></div>
+      <div class="lightbox-title" id="lightboxTitle"></div>
+      <div class="lightbox-exif">
+        <span>APERTURE<b id="exifF"></b></span>
+        <span>ISO<b id="exifIso"></b></span>
+        <span>SHUTTER<b id="exifSs"></b></span>
+        <span>LOCATION<b id="exifLoc"></b></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // --- Filtering ---
+  const filterBtns = document.querySelectorAll('.filter-btn');
+  const frames = document.querySelectorAll('.frame');
+
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filter = btn.dataset.filter;
+      frames.forEach(frame => {
+        const match = filter === 'all' || frame.dataset.cat === filter;
+        frame.style.display = match ? '' : 'none';
+      });
+    });
+  });
+
+  // --- Lightbox ---
+  const lightbox = document.getElementById('lightbox');
+  const lightboxImg = document.getElementById('lightboxImg');
+  const lightboxCat = document.getElementById('lightboxCat');
+  const lightboxTitle = document.getElementById('lightboxTitle');
+  const exifF = document.getElementById('exifF');
+  const exifIso = document.getElementById('exifIso');
+  const exifSs = document.getElementById('exifSs');
+  const exifLoc = document.getElementById('exifLoc');
+
+  const catLabels = {
+    landscape: 'Landscape',
+    wildlife: 'Wildlife',
+    night: 'Night & Sky',
+    light: 'Light & Color'
+  };
+
+  frames.forEach(frame => {
+    frame.addEventListener('click', () => {
+      const img = frame.querySelector('img');
+      lightboxImg.src = img.src.replace('w=800', 'w=1600').replace('w=1200', 'w=1800');
+      lightboxImg.alt = img.alt;
+      lightboxCat.textContent = catLabels[frame.dataset.cat] || '';
+      lightboxTitle.textContent = frame.dataset.title || '';
+      exifF.textContent = frame.dataset.exifF || '—';
+      exifIso.textContent = frame.dataset.exifIso || '—';
+      exifSs.textContent = frame.dataset.exifSs || '—';
+      exifLoc.textContent = frame.dataset.exifLoc || '—';
+      lightbox.classList.add('open');
+    });
+  });
+
+  function closeLightbox(){ lightbox.classList.remove('open'); }
+  document.getElementById('lightboxClose').addEventListener('click', closeLightbox);
+  lightbox.addEventListener('click', e => { if(e.target === lightbox) closeLightbox(); });
+  document.addEventListener('keydown', e => { if(e.key === 'Escape') closeLightbox(); });
+</script>
+
+</body>
+</html>
